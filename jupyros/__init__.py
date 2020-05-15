@@ -12,6 +12,7 @@ from .ros_widgets import *
 from .pubsub import *
 from .ipy import *
 from .server_extension import *
+from .jupy_rosbag import RosBag
 
 from .ros3d import *
 
