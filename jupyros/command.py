@@ -1,7 +1,6 @@
 import time
 import subprocess
 from threading import Thread
-from multiprocessing import Pipe
 
 class Command(Thread):
     
@@ -11,59 +10,29 @@ class Command(Thread):
         self.proc = None
         self.output = output
         
-        self.parentPipe, self.childPipe = Pipe(False)
-        
     def run(self):
-        self.proc = subprocess.Popen(self.cmd, stdin=subprocess.PIPE, stdout=self.childPipe, stderr=subprocess.STDOUT)
+        self.proc = subprocess.Popen(self.cmd, stdin=subprocess.PIPE, shell=True)
+        self.output.value = "Inicialized"
         
-        cont = 0
-        while self.parentPipe.poll(100) == None :
-            cont += 1
-            self.output.value = "Running: {}".format(cont)
-            time.sleep(0.1)
-        
-        self.output.value = self.parentPipe.recv()
+        self.proc.wait()
+        self.output.value = "Finished"
     
     def play(self):
         if self.proc != None and self.proc.poll() == None :
-            print("resume")
             self.proc.stdin.write(b' \n')
-            print("running")
-        
-        else :
-            print("finished")
-            print("reset")
-            self.proc = None
+            self.output.value = "Running"
         
     def pause(self):
         if self.proc != None and self.proc.poll() == None :
-            print("pause")
             self.proc.stdin.write(b' \n')
-            print("running")
-        
-        else :
-            print("finished")
-            print("reset")
-            self.proc = None
+            self.output.value = "Paused"
     
     def step(self):
         if self.proc != None and self.proc.poll() == None :
-            print("next")
             self.proc.stdin.write(b's\n')
-            print("running")
-            
-        else :
-            print("finished")
-            print("reset")
-            self.proc = None
+            self.output.value = "Next"
         
     def stop(self):
         if self.proc != None and self.proc.poll() == None :
-            print("Terminating")
             self.proc.terminate()
-            print("Terminated")
-        
-        else :
-            print("finished")
-            print("reset")
-            self.proc = None
+            self.output.value = "Finished"
