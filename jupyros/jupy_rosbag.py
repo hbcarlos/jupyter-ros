@@ -1,12 +1,11 @@
 import rosbag
-
-from command import Command
-
 from datetime import datetime
+
 import ipywidgets as widgets
 import ipyvuetify as vue
 from IPython.display import HTML
 
+from .command import Command
 
 class RosBag():
 
@@ -89,27 +88,26 @@ class RosBag():
     
     def play(self):
         
-        
         #labels = widgets.HBox([widgets.Label(value="Option"), widgets.Label(value="Topics")])
         #options = widgets.SelectMultiple(options=['--clock', '--loop', '--keep-alive', '--wait-for-subscribers'])
         #topics = widgets.SelectMultiple(options=self.topics.keys(), value=self.topics.keys())
         
-        top = [ top.append( vue.Checkbox(label=t, value=t, model='Selected') ) for t in self.topics.keys() ]
+        options = [ vue.Checkbox(label='--clock', value='--clock', v_model=None, class_='mx-0 px-0'),
+                    vue.Checkbox(label='--loop', value='--loop', v_model=None, class_='mx-0 px-0'),
+                    vue.Checkbox(label='--keep-alive', value='--keep-alive', v_model=None, class_='mx-0 px-0'),
+                    vue.Checkbox(label='--wait-for-subscribers', value='--wait-for-subscribers', v_model=None, class_='mx-0 px-0') ]
+        
+        topics = [ vue.Checkbox(label=t, value=t, v_model=t, class_='mx-0 px-0') for t in self.topics.keys() ]
         
         config = vue.Html(tag='div', class_='d-flex flex-row', children=[
             vue.Html(tag='div', class_='d-flex flex-column', children=[
                 vue.Html(tag='h3', children=['Options']),
-                vue.Container(children=[
-                    vue.Checkbox(label='--clock', value='--clock', model='Selected'),
-                    vue.Checkbox(label='--loop', value='--loop', model='Selected'),
-                    vue.Checkbox(label='--keep-alive', value='--keep-alive', model='Selected'),
-                    vue.Checkbox(label='--wait-for-subscribers', value='--wait-for-subscribers', model='Selected')
-                ])
+                vue.Container(children=options)
             ]),
             
             vue.Html(tag='div', class_='d-flex flex-column', children=[
                 vue.Html(tag='h3', children=['Topics']),
-                vue.Container(children=top)
+                vue.Container(children=topics)
             ]),
         ])
         
@@ -121,28 +119,31 @@ class RosBag():
         #btn_step = widgets.Button(description="Step", icon='step-forward')
         #btn_stop = widgets.Button(description="Stop", icon='stop', button_style='danger', disabled=True)
         
-        btn_init = vue.Btn(color='warning', children=['Initialize'])
-        btn_play = vue.Btn(color='warning', children=[vue.Icon(left=True, children=['play']), 'Play'])
-        btn_pause = vue.Btn(color='warning', children=[vue.Icon(left=True, children=['pause']), 'Pause'])
-        btn_step = vue.Btn(color='warning', children=[vue.Icon(left=True, children=['step-forward']), 'Step'])
-        btn_stop = vue.Btn(color='warning', children=[vue.Icon(left=True, children=['stop']), 'Stop'])
+        btn_init = vue.Btn(color='warning', children=['Initialize'], class_='mx-2')
+        btn_play = vue.Btn(color='success', disabled=True, children=[vue.Icon(left=True, children=['play']), 'Play'], class_='mx-2')
+        btn_pause = vue.Btn(color='primary', disabled=True, children=[vue.Icon(left=True, children=['pause']), 'Pause'], class_='mx-2')
+        btn_step = vue.Btn(color='primary', disabled=True, children=[vue.Icon(left=True, children=['step-forward']), 'Step'], class_='mx-2')
+        btn_stop = vue.Btn(color='error', disabled=True, children=[vue.Icon(left=True, children=['stop']), 'Stop'], class_='mx-2')
         
         #output = widgets.widgets.Text()
         output = vue.TextField(label='Output')
         
-        def btn_init_on_click(arg):
+        def btn_init_on_click(widget, event, data):
             btn_init.disabled = True
             btn_play.disabled = False
             btn_pause.disabled = False
             btn_step.disabled = True
             btn_stop.disabled = False
             
-            command = ' '.join(['rosbag', 'play', '--pause'] + list(options.value) + ['--topics'] + [' '.join(topics.value)] + ['--bags='+self.bag.filename])
+            opt = [ o.value for o in options if o.v_model != None ]
+            top = [ t.value for t in topics if t.v_model != None ]
+            
+            command = ' '.join(['rosbag', 'play', '--pause'] + list(opt) + ['--topics'] + [' '.join(top)] + ['--bags='+self.bag.filename])
             self.cmd = Command(command, output)
             self.cmd.start()
             
             
-        def btn_play_on_click(arg):
+        def btn_play_on_click(widget, event, data):
             btn_init.disabled = True
             btn_play.disabled = True
             btn_pause.disabled = False
@@ -150,11 +151,12 @@ class RosBag():
             btn_stop.disabled = False
             
             if self.cmd != None :
+                print("cmd.play")
                 self.cmd.play()
             else :
-                output.value = "You should initcialitze the command."
+                output.value = "You should initialize the command."
         
-        def btn_pause_on_click(arg):
+        def btn_pause_on_click(widget, event, data):
             btn_init.disabled = True
             btn_play.disabled = False
             btn_pause.disabled = True
@@ -164,9 +166,9 @@ class RosBag():
             if self.cmd != None :
                 self.cmd.pause()
             else :
-                output.value = "You should initcialitze the command."
+                output.value = "You should initialize the command."
         
-        def btn_step_on_click(arg):
+        def btn_step_on_click(widget, event, data):
             btn_init.disabled = True
             btn_play.disabled = False
             btn_pause.disabled = True
@@ -176,19 +178,19 @@ class RosBag():
             if self.cmd != None :
                 self.cmd.step()
             else :
-                output.value = "You should initcialitze the command."
+                output.value = "You should initialize the command."
         
-        def btn_stop_on_click(arg):
+        def btn_stop_on_click(widget, event, data):
             btn_init.disabled = False
-            btn_play.disabled = False
+            btn_play.disabled = True
             btn_pause.disabled = True
-            btn_step.disabled = False
+            btn_step.disabled = True
             btn_stop.disabled = True
             
             if self.cmd != None :
                 self.cmd.stop()
             else :
-                output.value = "You should initcialitze the command."
+                output.value = "You should initialize the command."
 
         #btn_init.on_click(btn_init_on_click)
         #btn_play.on_click(btn_play_on_click)
