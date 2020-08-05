@@ -136,8 +136,7 @@ setup_args = {
             'jupyros/static/index.js',
             'jupyros/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d/' ,['jupyros/etc/jupyros.json']),
-        ('etc/jupyter/jupyter_notebook_config.d/', ['jupyros/etc/jupyros_server_extension.json'])
+        ('etc/jupyter/nbconfig/notebook.d/' ,['jupyros/etc/jupyros.json'])
     ],
     'scripts': ['scripts/ros_kernel_generator'],
     'install_requires': [

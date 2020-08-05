@@ -11,7 +11,6 @@ from ._version import version_info, __version__
 from .ros_widgets import *
 from .pubsub import *
 from .ipy import *
-from .server_extension import *
 from .jupy_rosbag import *
 
 from .ros3d import *
