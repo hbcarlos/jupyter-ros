@@ -3,6 +3,7 @@ from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
+from setuptools.command.bdist_egg import bdist_egg
 from subprocess import check_call
 import os
 import sys
@@ -120,6 +121,16 @@ class NPM(Command):
         # update package data in case this created new files
         update_package_data(self.distribution)
 
+
+class BdistEggDisabled(bdist_egg):
+    """
+    Disabled version of bdist_egg
+    Prevents setup.py install performing setuptools' default easy_install,
+    which it should never ever do.
+    """
+    def run(self):
+        sys.exit("Aborting implicit building of eggs. Use `pip install .` to install from source.")
+
 version_ns = {}
 with open(os.path.join(here, 'jupyros', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
@@ -138,7 +149,6 @@ setup_args = {
         ],),
         ('etc/jupyter/nbconfig/notebook.d/' ,['jupyros/etc/jupyros.json'])
     ],
-    'scripts': ['scripts/ros_kernel_generator'],
     'install_requires': [
         'ipywidgets>=7.0.0',
         'bqplot',
@@ -152,6 +162,7 @@ setup_args = {
         'egg_info': js_prerelease(egg_info),
         'sdist': js_prerelease(sdist, strict=True),
         'jsdeps': NPM,
+        'bdist_egg': bdist_egg if 'bdist_egg' in sys.argv else BdistEggDisabled
     },
     'author': 'Wolf Vollprecht',
     'author_email': 'w.vollprecht@gmail.com',
